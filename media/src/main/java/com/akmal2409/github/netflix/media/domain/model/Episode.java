@@ -1,17 +1,15 @@
-package com.akmal2409.github.netflix.media.domain;
+package com.akmal2409.github.netflix.media.domain.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,12 +18,12 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 
-@Data
 @Entity
 @AllArgsConstructor
+@Data
 @NoArgsConstructor
-@Table(name = "episode_collections")
-public class EpisodeCollection implements Persistable<UUID> {
+@Table(name = "episodes")
+public class Episode implements Persistable<UUID> {
 
   @Id
   @Column(name = "id", updatable = false, nullable = false, columnDefinition = "uuid")
@@ -34,23 +32,26 @@ public class EpisodeCollection implements Persistable<UUID> {
   @Column(name = "title", nullable = false, columnDefinition = "VARCHAR(100)")
   private String title;
 
-  @Column(name = "description", nullable = false, columnDefinition = "description")
+  @Column(name = "description", nullable = false, columnDefinition = "VARCHAR(512)")
   private String description;
+
+  @Column(name = "release_date", nullable = false, columnDefinition = "DATE")
+  private LocalDate releaseDate;
+
+  @Column(name = "available_from", columnDefinition = "TIMESTAMP")
+  private Instant availableFrom;
 
   @Column(name = "thumbnails_generated", nullable = false, columnDefinition = "BOOLEAN")
   private boolean thumbnailsGenerated;
 
+  @Column(name = "media_transcoded", nullable = false, columnDefinition = "BOOLEAN")
+  private boolean mediaTranscoded;
+
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "series_id", referencedColumnName = "media_id")
+  @JoinColumn(name = "episode_collection_id", referencedColumnName = "id")
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
-  private Series series;
-
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "episodeCollection")
-  @ToString.Exclude
-  @EqualsAndHashCode.Exclude
-  private List<Episode> episodes = new ArrayList<>();
-
+  private EpisodeCollection episodeCollection;
 
   @Transient
   private boolean newEntity;
