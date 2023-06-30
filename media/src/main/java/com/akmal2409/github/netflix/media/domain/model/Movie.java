@@ -5,7 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
@@ -14,6 +18,7 @@ import lombok.Data;
  */
 @Entity
 @Data
+@NoArgsConstructor
 @Table(name = "movies")
 @PrimaryKeyJoinColumn(name = "media_id")
 public class Movie extends MediaContent {
@@ -30,4 +35,15 @@ public class Movie extends MediaContent {
   @Column(name = "available_from", columnDefinition = "TIMESTAMP")
   private Instant availableFrom;
 
+  public Movie(UUID mediaId, String imdbId, String title, String description,
+      LocalDate releaseDate, List<MediaProfessional> cast,
+      List<Genre> genres, MediaContentType type, boolean newEntity,
+      boolean thumbnailsGenerated, boolean mediaTranscoded, int durationSeconds,
+      Instant availableFrom) {
+    super(mediaId, imdbId, title, description, releaseDate, cast, genres, type, newEntity);
+    this.thumbnailsGenerated = thumbnailsGenerated;
+    this.mediaTranscoded = mediaTranscoded;
+    this.durationSeconds = durationSeconds;
+    this.availableFrom = availableFrom;
+  }
 }

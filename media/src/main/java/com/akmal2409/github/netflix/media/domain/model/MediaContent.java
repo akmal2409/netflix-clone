@@ -28,8 +28,8 @@ import org.springframework.data.domain.Persistable;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "media_contents")
 public abstract class MediaContent implements Persistable<UUID> {
 
@@ -85,5 +85,12 @@ public abstract class MediaContent implements Persistable<UUID> {
   @Override
   public UUID getId() {
     return this.mediaId;
+  }
+
+  /**
+   * Returns S3 location without domain name (only path) to the thumbnails
+   */
+  public String getThumbnailLocation() {
+    return null;
   }
 }
