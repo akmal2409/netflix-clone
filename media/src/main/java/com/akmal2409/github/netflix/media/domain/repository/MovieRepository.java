@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface MovieRepository extends JpaRepository<Movie, UUID> {
 
-  @Query("SELECT m FROM Movie m LEFT JOIN m.genres WHERE id = :id")
+  @Query("SELECT m FROM Movie m LEFT JOIN m.genres WHERE m.mediaId = :id")
   Optional<Movie> findByIdJoinGenres(@Param("id") UUID id);
 
   @Query("SELECT m FROM Movie m LEFT JOIN m.genres")
