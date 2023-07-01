@@ -1,4 +1,4 @@
-package com.akmal2409.github.netflix.media.domain.service.internal;
+package com.akmal2409.github.netflix.media.domain.repository;
 
 import com.akmal2409.github.netflix.media.domain.model.MediaProfessional;
 import java.util.List;

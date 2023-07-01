@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    show-sql: true
+
+app:
+  media-upload:
+    pre-signed-url-validity: 2h
+
+logging:
+  level:
+    root: debug
