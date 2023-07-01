@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -25,6 +26,7 @@ public class MediaS3Configuration {
   @Bean
   public S3Client mediaS3Client(@Qualifier("s3CredentialsProvider") AwsCredentialsProvider credentialsProvider) {
     return S3Client.builder()
+               .region(Region.US_EAST_1)
                .endpointOverride(URI.create(props.getHost()))
                .credentialsProvider(credentialsProvider)
                .forcePathStyle(true)
@@ -34,6 +36,7 @@ public class MediaS3Configuration {
   @Bean
   public S3Presigner mediaS3Presigner(@Qualifier("s3CredentialsProvider") AwsCredentialsProvider credentialsProvider) {
     return S3Presigner.builder()
+               .region(Region.US_EAST_1)
                .serviceConfiguration(S3Configuration.builder()
                                          .pathStyleAccessEnabled(true)
                                          .build())
