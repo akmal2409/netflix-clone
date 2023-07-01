@@ -12,7 +12,7 @@ public class TestMediaApplication {
   @Bean
   @ServiceConnection
   PostgreSQLContainer<?> postgresContainer() {
-    return new PostgreSQLContainer<>("postgres:latest");
+    return new PostgreSQLContainer<>("postgres:15-alpine");
   }
 
   public static void main(String[] args) {
