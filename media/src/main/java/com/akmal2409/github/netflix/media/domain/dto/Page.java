@@ -1,9 +1,8 @@
-package com.akmal2409.github.netflix.media.infrastructure.dto;
+package com.akmal2409.github.netflix.media.domain.dto;
 
 import java.util.List;
 import java.util.function.Function;
 import lombok.NonNull;
-import org.springframework.http.ResponseEntity;
 
 public record Page<T>(
     List<T> content,

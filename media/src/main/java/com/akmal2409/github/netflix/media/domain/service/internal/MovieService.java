@@ -2,9 +2,9 @@ package com.akmal2409.github.netflix.media.domain.service.internal;
 
 import com.akmal2409.github.netflix.media.domain.model.Movie;
 import com.akmal2409.github.netflix.media.domain.repository.GenreRepository;
+import com.akmal2409.github.netflix.media.domain.repository.MediaProfessionalRepository;
 import com.akmal2409.github.netflix.media.domain.repository.MovieRepository;
-import com.akmal2409.github.netflix.media.infrastructure.dto.internal.MovieCreateCommand;
-import java.util.List;
+import com.akmal2409.github.netflix.media.domain.dto.internal.MovieCreateCommand;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

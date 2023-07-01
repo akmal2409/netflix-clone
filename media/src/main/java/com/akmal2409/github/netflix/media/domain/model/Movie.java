@@ -1,5 +1,6 @@
 package com.akmal2409.github.netflix.media.domain.model;
 
+import com.akmal2409.github.netflix.media.domain.configuration.MediaS3Constants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
@@ -21,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "movies")
 @PrimaryKeyJoinColumn(name = "media_id")
-public class Movie extends MediaContent {
+public class Movie extends MediaContent implements VideoContent {
 
   @Column(name = "thumbnails_generated", nullable = false, columnDefinition = "BOOLEAN")
   private boolean thumbnailsGenerated;
@@ -45,5 +46,15 @@ public class Movie extends MediaContent {
     this.mediaTranscoded = mediaTranscoded;
     this.durationSeconds = durationSeconds;
     this.availableFrom = availableFrom;
+  }
+
+  @Override
+  public String bucketName() {
+    return MediaS3Constants.BUCKET;
+  }
+
+  @Override
+  public String objectKey() {
+    return String.format(MediaS3Constants.MOVIE_ORIGINAL_FILE_PREFIX, this.mediaId.toString());
   }
 }

@@ -1,4 +1,4 @@
-package com.akmal2409.github.netflix.media.infrastructure.dto.internal;
+package com.akmal2409.github.netflix.media.domain.dto.internal;
 
 import com.akmal2409.github.netflix.media.domain.model.Genre;
 import com.akmal2409.github.netflix.media.domain.model.MediaContentType;

@@ -7,9 +7,12 @@ spring:
     url: "jdbc:postgresql://localhost:5432/media"
     username: "postgres"
     password: "postgres"
-    driver-class-name: org.postgresql.Driver
   jpa:
-    database: postgresql
-    hibernate:
-      ddl-auto: validate
     show-sql: true
+
+
+app:
+  media-upload:
+    pre-signed-url-validity: "2h"
+  media-s3:
+    host: "http://localhost:9000"
