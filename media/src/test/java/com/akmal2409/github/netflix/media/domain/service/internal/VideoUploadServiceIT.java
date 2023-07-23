@@ -81,8 +81,8 @@ class VideoUploadServiceIT {
   }
 
   @Test
-  @DisplayName("Generates presigned URL with validity if upload request is valid")
-  void generatesPresignedUrlWithValidityWhenValidRequest() throws URISyntaxException {
+  @DisplayName("Generates pre-signed URL with validity if upload request is valid")
+  void generatesPreSignedUrlWithValidityWhenValidRequest() throws URISyntaxException {
     Instant validityLowerBound = Instant.now().plus(Duration.ofHours(2)); // everything after can have a margin of error
 
     final var validUploadRequest = new VideoContentUploadRequest(10, "video/mp4");
@@ -92,7 +92,7 @@ class VideoUploadServiceIT {
     assertThat(preSignedUrl.validUntil()).isAfter(validityLowerBound);
     assertThat(preSignedUrl.url()).isNotNull();
 
-    // validate presigned URL
+    // validate pre-signed URL
     byte[] content = new byte[10];
     HttpEntity<byte[]> requestEntity = new HttpEntity<>(content,
         new MultiValueMapAdapter<>(Map.of(
@@ -106,4 +106,6 @@ class VideoUploadServiceIT {
 
     assertThat(code.is2xxSuccessful()).isTrue();
   }
+
+
 }

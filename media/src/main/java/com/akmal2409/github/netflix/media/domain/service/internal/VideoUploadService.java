@@ -5,7 +5,6 @@ import com.akmal2409.github.netflix.media.domain.dto.internal.VideoContentUpload
 import com.akmal2409.github.netflix.media.domain.exception.UnsupportedVideoContentTypeException;
 import com.akmal2409.github.netflix.media.domain.exception.VideoUploadFailedException;
 import com.akmal2409.github.netflix.media.domain.model.VideoContent;
-import java.net.URL;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
