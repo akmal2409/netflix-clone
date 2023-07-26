@@ -1,9 +1,10 @@
-package com.github.akmal2409.netflix.videoslicer;
+package com.github.akmal2409.netflix.videoslicer.processing;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.akmal2409.netflix.videoslicer.api.FileNotFoundException;
-import com.github.akmal2409.netflix.videoslicer.api.SegmentationNotPossibleException;
+import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.FileNotFoundException;
+import com.github.akmal2409.netflix.videoslicer.processing.SegmentationNotPossibleException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,5 +74,15 @@ class FFmpegVideoSlicerTest {
     assertThatThrownBy(() -> slicer.slice(source, out,
         Duration.ofSeconds(-1), "segment.mp4"))
         .isInstanceOf(SegmentationNotPossibleException.class);
+  }
+
+
+  @Test
+  @DisplayName("Will throw FileNotFoundException when non existent video file passed to extractAudio")
+  void throwsExceptionWhenNoVideoForAudioExtraction() {
+
+    assertThatThrownBy(() -> slicer.extractAudio(Path.of(UUID.randomUUID().toString()),
+        Path.of(UUID.randomUUID().toString())))
+        .isInstanceOf(FileNotFoundException.class);
   }
 }

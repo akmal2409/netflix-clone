@@ -1,4 +1,4 @@
-package com.github.akmal2409.netflix.videoslicer.api;
+package com.github.akmal2409.netflix.videoslicer.processing;
 
 public class FileNotFoundException extends RuntimeException {
 

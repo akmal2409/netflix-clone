@@ -1,8 +1,5 @@
-package com.github.akmal2409.netflix.videoslicer;
+package com.github.akmal2409.netflix.videoslicer.processing;
 
-import com.github.akmal2409.netflix.videoslicer.api.FileNotFoundException;
-import com.github.akmal2409.netflix.videoslicer.api.SegmentationNotPossibleException;
-import com.github.akmal2409.netflix.videoslicer.api.VideoSlicer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -49,6 +46,25 @@ public class FFmpegVideoSlicer implements VideoSlicer {
                                         .disableAudio()
                                         .disableSubtitle()
                                         .setVideoCodec("copy")
+                                        .done();
+
+    this.ffmpegExecutor.createJob(ffBuilder).run();
+  }
+
+  @Override
+  public void extractAudio(Path source, Path out) {
+    if (!Files.exists(source)) {
+      throw new FileNotFoundException(source.toString());
+    }
+
+    final FFmpegBuilder ffBuilder = new FFmpegBuilder()
+                                        .setInput(source.toString())
+                                        .overrideOutputFiles(true)
+
+                                        .addOutput(out.toString())
+                                        .disableVideo()
+                                        .disableSubtitle()
+                                        .setAudioCodec("copy")
                                         .done();
 
     this.ffmpegExecutor.createJob(ffBuilder).run();
