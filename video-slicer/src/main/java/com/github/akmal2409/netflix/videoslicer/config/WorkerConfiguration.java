@@ -1,6 +1,7 @@
 package com.github.akmal2409.netflix.videoslicer.config;
 
 import com.github.akmal2409.netflix.videoslicer.config.loader.ConfigurationProperty;
+import java.nio.file.Path;
 
 public class WorkerConfiguration {
 
@@ -9,43 +10,54 @@ public class WorkerConfiguration {
       description = "RabbitMQ host",
       defaultValue = "localhost"
   )
-  private String rabbitmqHost = "localhost";
+  private final String rabbitmqHost = "localhost";
 
   @ConfigurationProperty(
       key = "rabbitmq.port",
       description = "RabbitMQ port",
       defaultValue = "5672"
   )
-  private int rabbitmqPort = 5672;
+  private final int rabbitmqPort = 5672;
 
   @ConfigurationProperty(
       key = "worker.concurrent-jobs",
       description = "Number of concurrent jobs worker can execute at once",
       defaultValue = "1"
   )
-  private int workerConcurrentJobs = 1;
+  private final int workerConcurrentJobs = 1;
 
   @ConfigurationProperty(
       key = "binaries.ffmpeg-path",
       description = "Absolute path to ffmpeg binary"
   )
-  private String ffmpegPath;
+  private final String ffmpegPath = null;
   @ConfigurationProperty(
       key = "binaries.ffprobe-path",
       description = "Absolute path to ffprobe binary"
   )
-  private String ffprobePath;
+  private final String ffprobePath = null;
 
-  @Override
-  public String toString() {
-    return "WorkerConfiguration{" +
-               "rabbitmqHost='" + rabbitmqHost + '\'' +
-               ", rabbitmqPort=" + rabbitmqPort +
-               ", workerConcurrentJobs=" + workerConcurrentJobs +
-               ", ffmpegPath='" + ffmpegPath + '\'' +
-               ", ffprobePath='" + ffprobePath + '\'' +
-               '}';
-  }
+
+  @ConfigurationProperty(
+      key = "aws.s3.endpoint",
+      description = "Absolute path to ffprobe binary"
+  )
+  private final String s3Endpoint = null;
+
+  @ConfigurationProperty(
+      key = "aws.s3.region",
+      description = "Absolute path to ffprobe binary",
+      defaultValue = "us-east-1"
+  )
+  private final String s3Region = "us-east-1";
+
+
+  @ConfigurationProperty(
+      key = "worker.jobs-file-folder",
+      description = "Absolute path a file folder to store job related files"
+  )
+  private final String jobsFileFolder =
+      Path.of(System.getProperty("java.io.tmpdir"), ".preprocess-worker").toString();
 
   public String getRabbitmqHost() {
     return rabbitmqHost;
@@ -65,5 +77,31 @@ public class WorkerConfiguration {
 
   public String getFfprobePath() {
     return ffprobePath;
+  }
+
+  public String getS3Endpoint() {
+    return s3Endpoint;
+  }
+
+  public String getS3Region() {
+    return s3Region;
+  }
+
+  public String getJobsFileFolder() {
+    return jobsFileFolder;
+  }
+
+  @Override
+  public String toString() {
+    return "WorkerConfiguration{" +
+               "rabbitmqHost='" + rabbitmqHost + '\'' +
+               ", rabbitmqPort=" + rabbitmqPort +
+               ", workerConcurrentJobs=" + workerConcurrentJobs +
+               ", ffmpegPath='" + ffmpegPath + '\'' +
+               ", ffprobePath='" + ffprobePath + '\'' +
+               ", s3Endpoint='" + s3Endpoint + '\'' +
+               ", s3Region='" + s3Region + '\'' +
+               ", jobsFileFolder='" + jobsFileFolder + '\'' +
+               '}';
   }
 }

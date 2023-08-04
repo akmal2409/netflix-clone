@@ -9,3 +9,7 @@ concurrent-jobs=1
 [binaries]
 ffmpeg-path="/opt/homebrew/bin/ffmpeg"
 ffprobe-path="/opt/homebrew/bin/ffprobe"
+
+[aws.s3]
+endpoint="http://localhost:9000"
+region="us-east-1"
