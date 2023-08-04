@@ -5,6 +5,7 @@ port=5672
 
 [worker]
 concurrent-jobs=1
+job-queue-name="video-preprocess-job-queue"
 
 [binaries]
 ffmpeg-path="/opt/homebrew/bin/ffmpeg"

@@ -1,24 +1,26 @@
 package com.github.akmal2409.netflix.videoslicer;
 
-import com.github.akmal2409.netflix.videoslicer.api.VideoSlicer;
-import java.io.IOException;
+import com.github.akmal2409.netflix.videoslicer.config.WorkerConfiguration;
+import com.github.akmal2409.netflix.videoslicer.config.loader.ConfigurationLoader;
+import com.github.akmal2409.netflix.videoslicer.config.loader.EnvironmentVariableConfigSource;
+import com.github.akmal2409.netflix.videoslicer.config.loader.SystemPropConfigSource;
+import com.github.akmal2409.netflix.videoslicer.config.loader.TomlConfigSource;
 import java.nio.file.Path;
-import java.time.Duration;
-import net.bramp.ffmpeg.FFmpeg;
-import net.bramp.ffmpeg.FFmpegExecutor;
-import net.bramp.ffmpeg.FFprobe;
+import java.util.List;
+
 
 public class Main {
 
-  public static void main(String[] args) throws IOException {
-    FFmpeg ffmpeg = new FFmpeg("/opt/homebrew/bin/ffmpeg");
-    FFprobe ffprobe = new FFprobe("/opt/homebrew/bin/ffprobe");
-    FFmpegExecutor ffmpegExecutor = new FFmpegExecutor(ffmpeg, ffprobe);
+  public static void main(String[] args) {
+    final var loader = new ConfigurationLoader<>(List.of(
+        new TomlConfigSource(Path.of("./config.toml")),
+        new SystemPropConfigSource(),
+        new EnvironmentVariableConfigSource()
+    ), WorkerConfiguration.class);
 
-    VideoSlicer slicer = FFmpegVideoSlicer.withExecutor(ffmpegExecutor);
+    new WorkerApplication(loader)
+        .run();
 
-    slicer.slice(Path.of("/Users/akmalalikhujaev/Personal/Dev/netflix-clone/video-slicer/video.mp4"), Path.of("/Users/akmalalikhujaev/Personal/Dev/netflix-clone-sample-files/tmp-playground"), Duration.ofSeconds(5),
-        "segment-%03d.mp4");
+
   }
-
 }

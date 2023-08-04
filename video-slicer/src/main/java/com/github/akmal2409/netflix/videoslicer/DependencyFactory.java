@@ -1,9 +1,11 @@
 package com.github.akmal2409.netflix.videoslicer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.akmal2409.netflix.videoslicer.config.WorkerConfiguration;
 import com.github.akmal2409.netflix.videoslicer.job.S3VideoStore;
 import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
 import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.rabbitmq.client.ConnectionFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -64,6 +66,19 @@ public class DependencyFactory {
         new FFmpeg(configuration.getFfmpegPath()),
         new FFprobe(configuration.getFfprobePath())
     );
+  }
+
+  public ConnectionFactory newConnectionFactory() {
+    final var factory = new ConnectionFactory();
+    factory.setHost(configuration.getRabbitmqHost());
+    factory.setPort(configuration.getRabbitmqPort());
+
+    return factory;
+  }
+
+  public ObjectMapper newObjectMapper() {
+    return new ObjectMapper()
+               .findAndRegisterModules();
   }
 
   public VideoSlicer newVideoSlicer(FFmpegExecutor executor) {

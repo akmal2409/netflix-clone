@@ -27,6 +27,19 @@ public class WorkerConfiguration {
   private final int workerConcurrentJobs = 1;
 
   @ConfigurationProperty(
+      key = "worker.jobs-file-folder",
+      description = "Absolute path a file folder to store job related files"
+  )
+  private final String jobsFileFolder =
+      Path.of(System.getProperty("java.io.tmpdir"), ".preprocess-worker").toString();
+
+  @ConfigurationProperty(
+      key = "worker.job-queue-name",
+      description = "Job queue name"
+  )
+  private final String jobQueue = null;
+
+  @ConfigurationProperty(
       key = "binaries.ffmpeg-path",
       description = "Absolute path to ffmpeg binary"
   )
@@ -52,12 +65,6 @@ public class WorkerConfiguration {
   private final String s3Region = "us-east-1";
 
 
-  @ConfigurationProperty(
-      key = "worker.jobs-file-folder",
-      description = "Absolute path a file folder to store job related files"
-  )
-  private final String jobsFileFolder =
-      Path.of(System.getProperty("java.io.tmpdir"), ".preprocess-worker").toString();
 
   public String getRabbitmqHost() {
     return rabbitmqHost;
@@ -69,6 +76,14 @@ public class WorkerConfiguration {
 
   public int getWorkerConcurrentJobs() {
     return workerConcurrentJobs;
+  }
+
+  public String getJobsFileFolder() {
+    return jobsFileFolder;
+  }
+
+  public String getJobQueue() {
+    return jobQueue;
   }
 
   public String getFfmpegPath() {
@@ -87,9 +102,6 @@ public class WorkerConfiguration {
     return s3Region;
   }
 
-  public String getJobsFileFolder() {
-    return jobsFileFolder;
-  }
 
   @Override
   public String toString() {
@@ -102,6 +114,7 @@ public class WorkerConfiguration {
                ", s3Endpoint='" + s3Endpoint + '\'' +
                ", s3Region='" + s3Region + '\'' +
                ", jobsFileFolder='" + jobsFileFolder + '\'' +
+               ", jobQueue='" + jobQueue + '\'' +
                '}';
   }
 }
