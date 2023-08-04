@@ -1,5 +1,6 @@
 package com.github.akmal2409.netflix.videoslicer.config.loader;
 
+import com.github.akmal2409.netflix.videoslicer.config.loader.utils.MapUtils;
 import com.github.akmal2409.netflix.videoslicer.config.loader.utils.ReflectionUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -13,12 +14,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Loads configuration from multiple {@link ConfigurationSource} that are sorted based on their
  * priority. C - class requires to have fields annotated with {@link ConfigurationProperty}
  */
 public class ConfigurationLoader<C> {
+
+  public static Logger log = LoggerFactory.getLogger(ConfigurationLoader.class);
 
   private final Collection<ConfigurationSource> sources;
   private final Class<C> configClass;
@@ -32,6 +38,12 @@ public class ConfigurationLoader<C> {
     this.sources = Collections.unmodifiableCollection(copy);
     this.configClass = configClass;
     this.configurationKeys = extractConfigurationKeys();
+
+    if (log.isDebugEnabled()) {
+      log.debug("Configured loader with following sources and order: {}",
+          sources.stream().map(source -> source.getClass().getName())
+              .collect(Collectors.joining(", ")));
+    }
   }
 
   /**
@@ -45,6 +57,10 @@ public class ConfigurationLoader<C> {
       properties.putAll(specificConfiguration);
     }
 
+    if (log.isDebugEnabled()) {
+      log.debug("Loaded configuration from {} sources\n{}",
+          sources.size(), MapUtils.toKVString(properties, "\n"));
+    }
     return mapToConfigClassInstance(properties);
   }
 
