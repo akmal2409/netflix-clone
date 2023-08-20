@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegVideoSlicer implements VideoSlicer {
 
+
   private static final Logger log = LoggerFactory.getLogger(FFmpegVideoSlicer.class);
 
   private final FFmpegExecutor ffmpegExecutor;

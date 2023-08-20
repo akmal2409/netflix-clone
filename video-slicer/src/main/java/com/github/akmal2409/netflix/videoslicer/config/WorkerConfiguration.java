@@ -52,6 +52,12 @@ public class WorkerConfiguration {
 
 
   @ConfigurationProperty(
+      key = "binaries.path",
+      description = "General path to binaries such as ffmpeg, ffprobe etc"
+  )
+  private final String path = null;
+
+  @ConfigurationProperty(
       key = "aws.s3.endpoint",
       description = "Absolute path to ffprobe binary"
   )
@@ -63,7 +69,6 @@ public class WorkerConfiguration {
       defaultValue = "us-east-1"
   )
   private final String s3Region = "us-east-1";
-
 
 
   public String getRabbitmqHost() {
@@ -102,6 +107,9 @@ public class WorkerConfiguration {
     return s3Region;
   }
 
+  public String getPath() {
+    return path;
+  }
 
   @Override
   public String toString() {
@@ -115,6 +123,7 @@ public class WorkerConfiguration {
                ", s3Region='" + s3Region + '\'' +
                ", jobsFileFolder='" + jobsFileFolder + '\'' +
                ", jobQueue='" + jobQueue + '\'' +
+               ", path='" + path + '\'' +
                '}';
   }
 }

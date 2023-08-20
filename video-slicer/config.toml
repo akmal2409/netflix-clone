@@ -10,6 +10,7 @@ job-queue-name="video-preprocess-job-queue"
 [binaries]
 ffmpeg-path="/opt/homebrew/bin/ffmpeg"
 ffprobe-path="/opt/homebrew/bin/ffprobe"
+path="/opt/homebrew/bin"
 
 [aws.s3]
 endpoint="http://localhost:9000"

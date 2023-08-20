@@ -2,9 +2,11 @@ package com.github.akmal2409.netflix.videoslicer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.akmal2409.netflix.videoslicer.config.WorkerConfiguration;
-import com.github.akmal2409.netflix.videoslicer.job.S3VideoStore;
+import com.github.akmal2409.netflix.videoslicer.job.S3Store;
 import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
 import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.analyser.FFprobeVideoAnalyser;
+import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoAnalyser;
 import com.rabbitmq.client.ConnectionFactory;
 import java.io.IOException;
 import java.net.URI;
@@ -68,6 +70,10 @@ public class DependencyFactory {
     );
   }
 
+  public com.github.kokorin.jaffree.ffprobe.FFprobe newJaffreeFFprobe() {
+    return com.github.kokorin.jaffree.ffprobe.FFprobe.atPath(Path.of(configuration.getPath()));
+  }
+
   public ConnectionFactory newConnectionFactory() {
     final var factory = new ConnectionFactory();
     factory.setHost(configuration.getRabbitmqHost());
@@ -85,8 +91,12 @@ public class DependencyFactory {
     return FFmpegVideoSlicer.withExecutor(executor);
   }
 
-  public S3VideoStore videoStore(S3TransferManager transferManager) {
-    return new S3VideoStore(Path.of(configuration.getJobsFileFolder()),
+  public S3Store videoStore(S3TransferManager transferManager) {
+    return new S3Store(Path.of(configuration.getJobsFileFolder()),
         transferManager);
+  }
+
+  public VideoAnalyser newVideoAnalyser(com.github.kokorin.jaffree.ffprobe.FFprobe ffprobe) {
+    return new FFprobeVideoAnalyser(ffprobe);
   }
 }

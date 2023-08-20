@@ -29,7 +29,7 @@ class S3VideoStoreTest {
 
     Files.createDirectory(temporaryFolder.resolve(jobId.toString()));
 
-    final var store = new S3VideoStore(temporaryFolder, transferManager);
+    final var store = new S3Store(temporaryFolder, transferManager);
 
     assertThatThrownBy(() -> store.downloadSource(jobId, "test", "test"))
         .isInstanceOf(DuplicateJobException.class);

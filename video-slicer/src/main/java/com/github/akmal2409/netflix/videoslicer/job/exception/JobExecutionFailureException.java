@@ -2,7 +2,7 @@ package com.github.akmal2409.netflix.videoslicer.job.exception;
 
 import java.util.UUID;
 
-public abstract class JobExecutionFailureException extends RuntimeException {
+public class JobExecutionFailureException extends RuntimeException {
 
   private final UUID jobId;
 

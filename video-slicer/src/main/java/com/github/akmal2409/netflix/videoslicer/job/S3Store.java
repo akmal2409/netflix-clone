@@ -21,8 +21,8 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
  * Class containing required operations for carrying out a preprocessing job such as downloading the
  * source video file and uploading preprocessed files.
  */
-public class S3VideoStore {
-  private static final Logger log = LoggerFactory.getLogger(S3VideoStore.class);
+public class S3Store {
+  private static final Logger log = LoggerFactory.getLogger(S3Store.class);
 
   /**
    * Storage folder that keeps the source files. {videoFolder}/{jobId}/{filename}.{extension}
@@ -30,7 +30,7 @@ public class S3VideoStore {
   private final Path videoFolder;
   private final S3TransferManager s3TransferManager;
 
-  public S3VideoStore(@NotNull Path videoFolder,
+  public S3Store(@NotNull Path videoFolder,
       @NotNull S3TransferManager s3TransferManager) {
     this.videoFolder = videoFolder;
     this.s3TransferManager = s3TransferManager;
@@ -54,6 +54,7 @@ public class S3VideoStore {
         jobId, bucket, key);
     try {
       jobDirectory = createJobDirectoryOrElseFail(jobId);
+      log.debug("message=Created job directory {};jobId={}", jobDirectory, jobId);
     } catch (IOException e) {
       throw new VideoDownloadException("Cannot set up folder", e, jobId);
     }
@@ -107,10 +108,10 @@ public class S3VideoStore {
   private Path createJobDirectoryOrElseFail(UUID jobId) throws IOException {
     final var jobFileFolder = videoFolder.resolve(jobId.toString());
 
-    synchronized (S3VideoStore.class) {
+    synchronized (S3Store.class) {
       if (Files.exists(jobFileFolder)) {
         log.error("message=Duplicate job detected;jobId={}", jobId);
-        throw new DuplicateJobException("Cannot create directory for a job because it already exists", jobId);
+        throw new DuplicateJobException("Cannot create directory for a job because it already exists: " + jobFileFolder, jobId);
       } else {
         Files.createDirectories(jobFileFolder);
       }

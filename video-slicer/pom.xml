@@ -61,6 +61,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.github.kokorin.jaffree</groupId>
+      <artifactId>jaffree</artifactId>
+      <version>2022.06.03</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.bytedeco</groupId>
       <artifactId>ffmpeg-platform-gpl</artifactId>
       <version>6.0-1.5.9</version>

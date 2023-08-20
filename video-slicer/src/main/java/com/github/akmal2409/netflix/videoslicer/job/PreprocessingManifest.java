@@ -12,7 +12,7 @@ public record PreprocessingManifest(
     String sourceFileKey, // input file key in s3
     String outputBucket, // output s3 bucket
     String outputFileKeyPrefix, // there can be many files, prefix will group them
-    int segmentDurationMs
+    int segmentDurationSeconds
 ) {
 
 }

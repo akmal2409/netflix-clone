@@ -7,8 +7,9 @@ import com.github.akmal2409.netflix.videoslicer.exception.AlreadyRunningExceptio
 import com.github.akmal2409.netflix.videoslicer.exception.AsyncMessagingPlatformException;
 import com.github.akmal2409.netflix.videoslicer.exception.DeadWorkerException;
 import com.github.akmal2409.netflix.videoslicer.job.JobConsumer;
-import com.github.akmal2409.netflix.videoslicer.job.S3VideoStore;
+import com.github.akmal2409.netflix.videoslicer.job.S3Store;
 import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoAnalyser;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -39,9 +40,10 @@ public class WorkerApplication {
   private DependencyFactory dependencyFactory;
 
   private VideoSlicer videoSlicer;
+  private VideoAnalyser videoAnalyser;
   private S3Client s3Client;
   private S3TransferManager transferManager;
-  private S3VideoStore s3VideoStore;
+  private S3Store s3VideoStore;
 
   private ConnectionFactory rabbitConnectionFactory;
 
@@ -58,6 +60,7 @@ public class WorkerApplication {
     this.lock = new ReentrantLock();
   }
 
+  // TODO: REFACTOR THIS PSEUDO THREAD SAFETY!!!!!!! (Disgrace to myself)
   public void run() {
     markAsRunningIfNotAlready();
     log.debug("Starting worker application");
@@ -70,23 +73,20 @@ public class WorkerApplication {
 
       log.debug("Established AMQP connection to RabbitMQ at {}:{}",
           configuration.getRabbitmqHost(), configuration.getRabbitmqPort());
+
+      activeChannel.queueDeclare(configuration.getJobQueue(), true, false, false, null);
+      activeChannel.basicQos(configuration.getWorkerConcurrentJobs());
+
+      activeChannel.basicConsume(configuration.getJobQueue(), new JobConsumer(
+          activeChannel, videoSlicer, mapper, s3VideoStore,
+          Executors.newFixedThreadPool(2), videoAnalyser));
+
     } catch (IOException | TimeoutException e) {
       throw new AsyncMessagingPlatformException("Issue with AMQP connection", e);
     } finally {
       lock.unlock();
     }
 
-    try {
-      activeChannel.queueDeclare(configuration.getJobQueue(), true, false, false, null);
-      activeChannel.basicQos(configuration.getWorkerConcurrentJobs());
-
-      activeChannel.basicConsume(configuration.getJobQueue(), new JobConsumer(
-          activeChannel, videoSlicer, mapper, s3VideoStore,
-          Executors.newFixedThreadPool(2)));
-
-    } catch (IOException e) {
-      throw new AsyncMessagingPlatformException("Cannot establish consumer", e);
-    }
 
     lock.lock();
     try {
@@ -132,7 +132,10 @@ public class WorkerApplication {
       dependencyFactory = DependencyFactory.withConfiguration(configuration);
       final var awsCredentialsProvider = dependencyFactory.newAwsCredentialsProvider();
       s3Client = dependencyFactory.newS3Client(awsCredentialsProvider);
+
       videoSlicer = dependencyFactory.newVideoSlicer(dependencyFactory.ffmpegExecutor());
+      videoAnalyser = dependencyFactory.newVideoAnalyser(dependencyFactory.newJaffreeFFprobe());
+
       transferManager = dependencyFactory.newS3TransferManager(
           dependencyFactory.newS3AsyncClient(awsCredentialsProvider));
       s3VideoStore = dependencyFactory.videoStore(transferManager);
