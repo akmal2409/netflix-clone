@@ -1,6 +1,7 @@
 package com.github.akmal2409.netflix.videoslicer.job;
 
 import com.github.akmal2409.netflix.videoslicer.job.exception.DuplicateJobException;
+import com.github.akmal2409.netflix.videoslicer.job.exception.ProcessedFilesUploadFailedException;
 import com.github.akmal2409.netflix.videoslicer.job.exception.VideoDownloadException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,8 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 /**
@@ -102,6 +105,40 @@ public class S3Store {
       return key.substring(lastSlashIndex + 1);
     } else {
       return key; // means no slashes and we have a full filename
+    }
+  }
+
+  /**
+   * Uploads directory with processed files such as segments, index file, audio etc.
+   * to the destination bucket with a prefix.
+   * Files located at the top of the folder will have {@code keyPrefix} all files
+   * in the nested directories will have a key: {@code keyPrefix} + directories + fileName
+   *
+   * @param bucket s3 bucket where the contents of the directory should be placed.
+   * @param keyPrefix common key prefix for all the files.
+   * @param directory path to upload.
+   */
+  public void uploadProcessedFiles(@NotNull String bucket, @NotNull String keyPrefix,
+      @NotNull Path directory) {
+    log.debug("message=Starting upload of processed files from directory {} to bucket {} with key {};bucket={}",
+        directory, bucket, keyPrefix, bucket);
+
+    final var uploadRequest = UploadDirectoryRequest.builder()
+                                  .followSymbolicLinks(false)
+                                  .maxDepth(10)
+                                  .s3Prefix(keyPrefix)
+                                  .source(directory)
+                                  .bucket(bucket)
+                                  .build();
+
+    final DirectoryUpload upload = this.s3TransferManager.uploadDirectory(uploadRequest);
+
+    try {
+      upload.completionFuture().join();
+      log.debug("message=Finished upload of processed files from directory {} to bucket {} with key {};bucket={}",
+          directory, bucket, keyPrefix, bucket);
+    } catch (CompletionException e) {
+      throw new ProcessedFilesUploadFailedException(directory, bucket, keyPrefix);
     }
   }
 

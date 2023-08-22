@@ -30,7 +30,7 @@ public class JobConsumer extends DefaultConsumer {
 
   private final VideoSlicer videoSlicer;
   private final ObjectMapper objectMapper;
-  private final S3Store videoStore;
+  private final S3Store s3Store;
   private final Executor executor;
   private final VideoAnalyser videoAnalyser;
 
@@ -39,7 +39,7 @@ public class JobConsumer extends DefaultConsumer {
     super(channel);
     this.videoSlicer = videoSlicer;
     this.objectMapper = objectMapper;
-    this.videoStore = videoStore;
+    this.s3Store = videoStore;
     this.executor = executor;
     this.videoAnalyser = videoAnalyser;
   }
@@ -73,13 +73,15 @@ public class JobConsumer extends DefaultConsumer {
       // TODO: send it it another queue, where alert can be dispatched
       getChannel().basicAck(envelope.getDeliveryTag(), false);
     } else {
-      final JobVideoSource videoSource = videoStore.downloadSource(manifest.jobId(),
+      final JobVideoSource videoSource = s3Store.downloadSource(manifest.jobId(),
           manifest.sourceBucket(), manifest.sourceFileKey());
+
+      final var outputFileDirectory = videoSource.filePath().getParent().resolve("processed");
 
       // extracting frame rate and total number of frames in the video.
       final VideoIndex videoIndex = videoAnalyser.analyse(videoSource.filePath());
 
-      final var audioFilePath = videoSource.filePath().getParent().resolve("audio.m4a");
+      final var audioFilePath = outputFileDirectory.resolve("audio.m4a");
 
       final var audioExtractionFuture = CompletableFuture.runAsync(() ->
                                                                        videoSlicer.extractAudio(
@@ -88,7 +90,7 @@ public class JobConsumer extends DefaultConsumer {
           executor);
 
       // while the audio task is running async, we can wait for segmentation to finish and then index all files
-      final var segmentsPath = videoSource.filePath().getParent().resolve("segments");
+      final var segmentsPath = outputFileDirectory.resolve("segments");
       videoSlicer.slice(
           videoSource.filePath(),
           segmentsPath,
@@ -118,6 +120,9 @@ public class JobConsumer extends DefaultConsumer {
 
         throw new JobExecutionFailureException("Failed to write index file", manifest.jobId());
       }
+
+      s3Store.uploadProcessedFiles(manifest.outputBucket(),
+          manifest.outputFileKeyPrefix(), outputFileDirectory);
 
       getChannel().basicAck(envelope.getDeliveryTag(), false); // acknowledge it and complete execution
     }
