@@ -56,6 +56,7 @@ public class FFprobeVideoAnalyser implements VideoAnalyser {
       final FFprobeResult result = ffprobe.setInput(inChannel)
                                        .setSelectStreams("v:0")
                                        .setCountFrames(true)
+                                       .addArguments( "-v", "error")
                                        .setShowEntries("stream:format")
                                        .execute();
 
@@ -130,6 +131,7 @@ public class FFprobeVideoAnalyser implements VideoAnalyser {
   private Segment analyseSegment(Path segmentPath, int index, int startFrame) {
     try (final var inChannel = Files.newByteChannel(segmentPath, StandardOpenOption.READ)) {
       final FFprobeResult result = ffprobe.setInput(inChannel)
+                                       .addArguments( "-v", "error")
                                        .setSelectStreams("v:0")
                                        .setCountFrames(true)
                                        .setShowEntries("stream")

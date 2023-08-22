@@ -23,6 +23,7 @@ services:
     image: rabbitmq:3.10.25-management-alpine
     hostname: "rabbit-01"
     container_name: "rabbit-01"
+    restart: "always"
     ports:
       - "5672:5672"
       - "15672:15672"

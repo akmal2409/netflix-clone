@@ -61,7 +61,8 @@ public class FFmpegVideoSlicer implements VideoSlicer {
                                         .setFormat("segment")
                                         .addExtraArgs("-segment_time",
                                             String.valueOf(segmentDuration.toSeconds()),
-                                            "-reset_timestamps", "1")
+                                            "-reset_timestamps", "1",
+                                            "-v", "error")
 
                                         .disableAudio()
                                         .disableSubtitle()
@@ -93,6 +94,8 @@ public class FFmpegVideoSlicer implements VideoSlicer {
     final FFmpegBuilder ffBuilder = new FFmpegBuilder()
                                         .setInput(source.toString())
                                         .overrideOutputFiles(true)
+
+                                        .addExtraArgs( "-v", "error")
 
                                         .addOutput(out.toString())
                                         .disableVideo()
