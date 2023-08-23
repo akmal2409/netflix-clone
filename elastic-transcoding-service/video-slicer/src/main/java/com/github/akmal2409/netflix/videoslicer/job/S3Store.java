@@ -25,6 +25,7 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
  * source video file and uploading preprocessed files.
  */
 public class S3Store {
+
   private static final Logger log = LoggerFactory.getLogger(S3Store.class);
 
   /**
@@ -42,14 +43,16 @@ public class S3Store {
   /**
    * Downloads source video file to the folder on disk and returns the path to the file.
    *
-   * @throws VideoDownloadException if the download failed or preparation for download
-   * @throws DuplicateJobException if the contents cannot be stored because this job has associated files on disk.
    * @param jobId  of the transcoding job.
    * @param bucket s3 bucket name.
    * @param key    file key.
    * @return path to the file.
+   * @throws VideoDownloadException if the download failed or preparation for download
+   * @throws DuplicateJobException  if the contents cannot be stored because this job has associated
+   *                                files on disk.
    */
-  public JobVideoSource downloadSource(@NotNull UUID jobId, @NotNull String bucket, @NotNull String key) {
+  public JobVideoSource downloadSource(@NotNull UUID jobId, @NotNull String bucket,
+      @NotNull String key) {
     final String fileName = extractFileNameFromS3Key(key);
 
     Path jobDirectory;
@@ -65,13 +68,13 @@ public class S3Store {
     final var filePath = jobDirectory.resolve(fileName);
 
     final FileDownload download = s3TransferManager
-                                                 .downloadFile(
-                                                     DownloadFileRequest.builder()
-                                                         .getObjectRequest(b -> b.bucket(bucket).key(key))
-                                                         .destination(filePath)
-                                                         .addTransferListener(
-                                                             LoggingTransferListener.create())
-                                                         .build());
+                                      .downloadFile(
+                                          DownloadFileRequest.builder()
+                                              .getObjectRequest(b -> b.bucket(bucket).key(key))
+                                              .destination(filePath)
+                                              .addTransferListener(
+                                                  LoggingTransferListener.create())
+                                              .build());
 
     try {
       final CompletedFileDownload result = download.completionFuture().join();
@@ -109,18 +112,19 @@ public class S3Store {
   }
 
   /**
-   * Uploads directory with processed files such as segments, index file, audio etc.
-   * to the destination bucket with a prefix.
-   * Files located at the top of the folder will have {@code keyPrefix} all files
-   * in the nested directories will have a key: {@code keyPrefix} + directories + fileName
+   * Uploads directory with processed files such as segments, index file, audio etc. to the
+   * destination bucket with a prefix. Files located at the top of the folder will have
+   * {@code keyPrefix} all files in the nested directories will have a key: {@code keyPrefix} +
+   * directories + fileName
    *
-   * @param bucket s3 bucket where the contents of the directory should be placed.
+   * @param bucket    s3 bucket where the contents of the directory should be placed.
    * @param keyPrefix common key prefix for all the files.
    * @param directory path to upload.
    */
   public void uploadProcessedFiles(@NotNull String bucket, @NotNull String keyPrefix,
       @NotNull Path directory) {
-    log.debug("message=Starting upload of processed files from directory {} to bucket {} with key {};bucket={}",
+    log.debug(
+        "message=Starting upload of processed files from directory {} to bucket {} with key {};bucket={}",
         directory, bucket, keyPrefix, bucket);
 
     final var uploadRequest = UploadDirectoryRequest.builder()
@@ -135,7 +139,8 @@ public class S3Store {
 
     try {
       upload.completionFuture().join();
-      log.debug("message=Finished upload of processed files from directory {} to bucket {} with key {};bucket={}",
+      log.debug(
+          "message=Finished upload of processed files from directory {} to bucket {} with key {};bucket={}",
           directory, bucket, keyPrefix, bucket);
     } catch (CompletionException e) {
       throw new ProcessedFilesUploadFailedException(directory, bucket, keyPrefix);
@@ -148,7 +153,8 @@ public class S3Store {
     synchronized (S3Store.class) {
       if (Files.exists(jobFileFolder)) {
         log.error("message=Duplicate job detected;jobId={}", jobId);
-        throw new DuplicateJobException("Cannot create directory for a job because it already exists: " + jobFileFolder, jobId);
+        throw new DuplicateJobException(
+            "Cannot create directory for a job because it already exists: " + jobFileFolder, jobId);
       } else {
         Files.createDirectories(jobFileFolder);
       }
