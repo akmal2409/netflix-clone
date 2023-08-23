@@ -48,14 +48,14 @@ public class DependencyFactory {
                .build();
   }
 
-  public S3AsyncClient newS3AsyncClient(AwsCredentialsProvider credentialsProvider) {
-    return S3AsyncClient.builder()
-               .region(Region.of(configuration.getS3Region()))
-               .endpointOverride(URI.create(configuration.getS3Endpoint()))
-               .credentialsProvider(credentialsProvider)
-               .forcePathStyle(true)
-               .build();
-  }
+    public S3AsyncClient newS3AsyncClient(AwsCredentialsProvider credentialsProvider) {
+      return S3AsyncClient.builder()
+                 .region(Region.of(configuration.getS3Region()))
+                 .endpointOverride(URI.create(configuration.getS3Endpoint()))
+                 .credentialsProvider(credentialsProvider)
+                 .forcePathStyle(true)
+                 .build();
+    }
 
   public S3TransferManager newS3TransferManager(S3AsyncClient asyncClient) {
     return S3TransferManager.builder()
