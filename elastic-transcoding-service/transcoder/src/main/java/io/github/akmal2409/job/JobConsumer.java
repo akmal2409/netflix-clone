@@ -5,6 +5,8 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import io.github.akmal2409.job.TranscodingJobManifest.VideoQuality;
+import io.github.akmal2409.utils.FileUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,35 +62,81 @@ public class JobConsumer extends DefaultConsumer {
         "message=Downloaded segment files for the job. Number of segments {}. Downloaded to: {};jobId={};consumerTag={}j;obType=transcoding_job",
         segmentNames.length, segmentsPath, manifest.jobId(), consumerTag);
 
-    if (manifest.skipFirstFrames() > 0) {
-      final var firstSegment = segmentsPath.resolve(segmentNames[0]);
-      skipVideoFrames(firstSegment, manifest.skipFirstFrames());
+    try {
+      if (manifest.skipFirstFrames() > 0) {
+        final var firstSegment = segmentsPath.resolve(segmentNames[0]);
+        skipVideoFrames(firstSegment, manifest.skipFirstFrames());
+        log.debug(
+            "message=Skipped {} frames from first segment {};jobId={};consumerTag={};jobType=transcoding_job",
+            manifest.skipFirstFrames(), segmentNames[0], manifest.jobId(), consumerTag);
+      }
+
+      final Path[] segmentPaths = buildSegmentPaths(segmentsPath, segmentNames);
+      final Path joinedEncodedSegments = segmentsPath.resolve("joined.mp4");
+
+      transcoder.joinVideosWithGopSize(segmentPaths, joinedEncodedSegments, manifest.gopSize());
+
+      final Path processedFilesPath = segmentsPath.resolve("processed");
+      final Path originalQualitySegmentPath = processedFilesPath.resolve(
+          String.format("%dx%d-%d", manifest.originalQuality().width(),
+              manifest.originalQuality().height(),
+              manifest.originalQuality().bitRate()));
+
+      final Path processedSegment = originalQualitySegmentPath
+                                        .resolve(SegmentConstants.segmentIndexToFileName(
+                                            manifest.segmentIndex()));
+
+      transcoder.extractFirstSegment(joinedEncodedSegments, processedSegment,
+          manifest.targetSegmentDurationSeconds());
       log.debug(
-          "message=Skipped {} frames from first segment {};jobId={};consumerTag={};jobType=transcoding_job",
-          manifest.skipFirstFrames(), segmentNames[0], manifest.jobId(), consumerTag);
+          "message=Finished transcoding segment with index {} at {};jobId={};consumerTag={};jobType=transcoding_job",
+          manifest.segmentIndex(), processedSegment, manifest.jobId(), consumerTag);
+
+      transcodeToDifferentBitRates(manifest, processedSegment, processedFilesPath);
+
+      log.debug(
+          "message=Finished transcoding original segment with index {} to {} qualities;jobId={};consumerTag={};jobType=transcoding_job",
+          manifest.segmentIndex(), manifest.outputQualities().length, manifest.jobId(),
+          consumerTag);
+
+      s3Store.uploadProcessedFiles(manifest.outputBucket(), manifest.outputKeyPrefix(),
+          processedFilesPath);
+      log.debug(
+          "message=Finished uploading segments to bucket;bucket={};key={};jobId={};consumerTag={};jobType=transcoding_job",
+          manifest.outputBucket(), manifest.outputKeyPrefix(), manifest.jobId(), consumerTag);
+
+      getChannel().basicAck(envelope.getDeliveryTag(), false);
+    } finally {
+      FileUtils.deleteDirectory(segmentsPath);
+    }
+  }
+
+  private void transcodeToDifferentBitRates(TranscodingJobManifest manifest, Path segmentPath,
+      Path contextPath) {
+    final VideoQualityTranscodingTask[] tasks = new VideoQualityTranscodingTask[manifest.outputQualities().length];
+
+    VideoQuality quality;
+    Path transcodedSegmentPath;
+
+    for (int i = 0; i < manifest.outputQualities().length; i++) {
+      quality = manifest.outputQualities()[i];
+
+      transcodedSegmentPath = contextPath.resolve(String.format("%dx%d-%d", quality.width(),
+          quality.height(),
+          quality.bitRate())).resolve(segmentPath.getFileName().toString());
+
+      try {
+        Files.createDirectories(transcodedSegmentPath.getParent());
+      } catch (IOException e) {
+        throw new TranscodingException(
+            "Cannot create a directory for segment quality " + transcodedSegmentPath);
+      }
+
+      tasks[i] = new VideoQualityTranscodingTask(transcodedSegmentPath, quality.width(),
+          quality.height(), quality.bitRate());
     }
 
-    final Path[] segmentPaths = buildSegmentPaths(segmentsPath, segmentNames);
-    final Path joinedEncodedSegments = segmentsPath.resolve("joined.mp4");
-
-    transcoder.joinVideosWithGopSize(segmentPaths, joinedEncodedSegments, manifest.gopSize());
-
-    final Path originalQualitySegmentPath = segmentsPath.resolve("processed").resolve(
-        String.format("%dx%d-%d", manifest.originalQuality().width(),
-            manifest.originalQuality().height(),
-            manifest.originalQuality().bitRate()));
-
-    final Path processedSegment = originalQualitySegmentPath
-                                      .resolve(SegmentConstants.segmentIndexToFileName(
-                                          manifest.segmentIndex()));
-
-    transcoder.extractFirstSegment(joinedEncodedSegments, processedSegment,
-        manifest.targetSegmentDurationSeconds());
-    log.debug(
-        "message=Finished transcoding segment with index {} at {};jobId={};consumerTag={}j;obType=transcoding_job",
-        manifest.segmentIndex(), processedSegment, manifest.jobId(), consumerTag);
-
-
+    transcoder.transcodeToMultipleQualities(segmentPath, tasks);
   }
 
   private Path[] buildSegmentPaths(Path rootPath, String[] segmentNames) {
@@ -161,6 +209,10 @@ public class JobConsumer extends DefaultConsumer {
 
     if (manifest.gopSize() < 1) {
       throw new InvalidManifestException("gopSize", manifest.gopSize(), "GOP smaller than 1");
+    }
+
+    if (manifest.outputQualities() == null || manifest.outputQualities().length == 0) {
+      throw new InvalidManifestException("outputQualities", null, "no qualities provided");
     }
   }
 }

@@ -98,7 +98,7 @@ public class Transcoder {
       final var firstSegmentName = "segment-000000000." + outputFileContainerExtension;
 
       try {
-        Files.createDirectories(outFile);
+        Files.createDirectories(outFile.getParent());
         Files.move(tmpDirectory.resolve(firstSegmentName), outFile, REPLACE_EXISTING);
       } catch (IOException e) {
         throw new TranscodingException("Could not move file to the output path " + outFile);
@@ -115,6 +115,43 @@ public class Transcoder {
         }
       }
     }
+  }
+
+  /**
+   * Given at least 1 {@link VideoQualityTranscodingTask} transcodes the source video into the desired resolution and bitrate, while trying to
+   * preserve the quality by using a 2-pass job.
+   *
+   * @param source video file that needs to be transcoded.
+   * @param qualities that you want your video to be available in.
+   */
+  public void transcodeToMultipleQualities(Path source, VideoQualityTranscodingTask... qualities) {
+    if (qualities == null || qualities.length == 0) {
+      throw new TranscodingException("At least 1 video quality with an output should be provided");
+    }
+
+    if (!Files.exists(source)) {
+      throw new TranscodingException("Source file doesn't exist");
+    }
+
+    final var jobBuilder = new FFmpegBuilder()
+                               .addInput(source.toString());
+
+    for (VideoQualityTranscodingTask task: qualities) {
+      final var containerFormat = FileUtils.getFileExtension(task.out().getFileName().toString());
+
+      jobBuilder.addOutput(task.out().toString())
+          .setVideoCodec("libx264")
+          .addExtraArgs("-tune", "film")
+          .setVideoBitRate(task.bitRate())
+          .addExtraArgs("-b:v", task.bitRate() + "k")
+          .setVideoFilter(String.format("scale=%d:%d", task.width(), task.height()))
+          .addExtraArgs("-preset", "slow")
+
+          .setFormat(containerFormat);
+    }
+
+
+    ffmpegExecutor.createTwoPassJob(jobBuilder).run();
   }
 
   /**

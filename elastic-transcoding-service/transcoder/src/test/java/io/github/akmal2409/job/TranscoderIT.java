@@ -21,6 +21,11 @@ class TranscoderIT {
   final FFprobe ffprobe = FFprobe.atPath();
   final Path testVideoPath = Path.of(
       this.getClass().getClassLoader().getResource("test-15s-only-video.mp4").toURI());
+
+  final int testVideoWidth = 640;
+  final int testVideoHeight = 360;
+  final int testVideoBitRate = 269;
+
   final Path testVideoWithAudioPath = Path.of(
       this.getClass().getClassLoader().getResource("test-15s.mp4").toURI());
 
@@ -71,6 +76,53 @@ class TranscoderIT {
 
     assertThat(getDuration(out))
         .isEqualTo((float)segmentDuration, Offset.offset(3f));
+  }
+
+
+  @Test
+  @DisplayName("Transcodes to different quality")
+  void transcodesToMultipleQualities() throws IOException {
+    final Path video = testVideoPath;
+    final Path out = Files.createTempDirectory(null).resolve("test.mp4");
+
+    final var expectedWidth = 320;
+    final var expectedHeight = 320;
+    final var expectedBitRate = 100;
+
+    final VideoQualityTranscodingTask task = new VideoQualityTranscodingTask(out, 320, 320, 100);
+
+    transcoder.transcodeToMultipleQualities(video, task);
+
+    final int[] actualResolution = getResolution(out);
+    final float actualBitRate = getBitRate(out);
+
+    assertThat(actualResolution[0]).isEqualTo(expectedWidth);
+    assertThat(actualResolution[1]).isEqualTo(expectedHeight);
+
+    assertThat(actualBitRate).isEqualTo( expectedBitRate, Offset.offset(10f));
+
+  }
+
+
+  private int[] getResolution(Path video) {
+    final var resolution = new int[2];
+
+    final FFprobeResult result = ffprobe.setInput(video)
+        .setShowEntries("format:stream")
+        .execute();
+
+    resolution[0] = result.getStreams().get(0).getWidth();
+    resolution[1] = result.getStreams().get(0).getHeight();
+
+    return resolution;
+  }
+
+  private float getBitRate(Path video) {
+    return ffprobe.setInput(video)
+               .setShowEntries("stream")
+               .execute()
+               .getStreams().get(0)
+               .getProbeData().getInteger("bit_rate")/1000f;
   }
 
   private float getDuration(Path video) {

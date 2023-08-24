@@ -21,13 +21,20 @@ public class JobSender {
 
     try (final Connection conn = connectionFactory.newConnection();
      final Channel channel = conn.createChannel()) {
-      final var jobId = UUID.randomUUID();
+      final var jobId = UUID.fromString("376c3b41-cdcf-45b5-8773-23e91633c853");
       final var job = new TranscodingJobManifest(
           jobId,
           "processed", "job-376c3b41-cdcf-45b5-8773-23e91633c853",
-          "transcoded", String.format("job-%s",jobId), 0, 5,
-          new String[]{SegmentConstants.segmentIndexToFileName(1), SegmentConstants.segmentIndexToFileName(2), SegmentConstants.segmentIndexToFileName(3)},
-          10, 120, new VideoQuality[0], new VideoQuality(1280, 720, 7366)
+          "transcoded", String.format("job-%s",jobId), 3, 5,
+          new String[]{SegmentConstants.segmentIndexToFileName(6)},
+          36, 120, new VideoQuality[]{
+          new VideoQuality(1280, 720, 6000),
+          new VideoQuality(1280, 720, 5000),
+          new VideoQuality(1280, 720, 4000),
+
+          new VideoQuality(640, 360, 3000),
+
+      }, new VideoQuality(1280, 720, 7366)
       );
 
       channel.basicPublish("", "transcoding-queue", null, mapper.writeValueAsBytes(job));

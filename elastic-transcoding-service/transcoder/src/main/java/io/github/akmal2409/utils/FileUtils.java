@@ -52,7 +52,5 @@ public final class FileUtils {
         return FileVisitResult.CONTINUE;
       }
     });
-
-    Files.delete(directory);
   }
 }
