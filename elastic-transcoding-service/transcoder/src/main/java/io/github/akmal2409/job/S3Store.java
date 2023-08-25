@@ -41,8 +41,7 @@ public class S3Store {
    * @param localDirectoryName directory name where to store multiple files
    * @return path to directory containing all requested files
    */
-  public Path downloadSamePrefixFiles(String bucket, String keyPrefix, String[] fileNames,
-      String localDirectoryName) {
+  public Path downloadSamePrefixFiles(String bucket, String keyPrefix, String localDirectoryName, String... fileNames) {
 
     final Path fileDownloadPath = this.downloadDirectory.resolve(localDirectoryName);
     try {

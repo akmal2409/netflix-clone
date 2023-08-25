@@ -1,11 +1,16 @@
-package io.github.akmal2409.job;
+package io.github.akmal2409.job.video;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import io.github.akmal2409.job.TranscodingJobManifest.VideoQuality;
+import io.github.akmal2409.job.InvalidManifestException;
+import io.github.akmal2409.job.S3Store;
+import io.github.akmal2409.job.Transcoder;
+import io.github.akmal2409.job.TranscodingException;
+import io.github.akmal2409.job.VideoQualityTranscodingTask;
+import io.github.akmal2409.job.video.TranscodingJobManifest.VideoQuality;
 import io.github.akmal2409.utils.FileUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,15 +20,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class JobConsumer extends DefaultConsumer {
+public class SegmentTranscodingJobConsumer extends DefaultConsumer {
 
-  private static final Logger log = LoggerFactory.getLogger(JobConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(SegmentTranscodingJobConsumer.class);
 
   private final ObjectMapper mapper;
   private final S3Store s3Store;
   private final Transcoder transcoder;
 
-  public JobConsumer(Channel channel, ObjectMapper mapper, S3Store s3Store, Transcoder transcoder) {
+  public SegmentTranscodingJobConsumer(Channel channel, ObjectMapper mapper, S3Store s3Store, Transcoder transcoder) {
     super(channel);
     this.mapper = mapper;
     this.s3Store = s3Store;
@@ -39,13 +44,13 @@ public class JobConsumer extends DefaultConsumer {
     try {
       validateManifest(manifest);
       log.debug(
-          "message=Validated manifest. Starting with the job;jobId={};consumerTag={};jobType=transcoding_job",
+          "message=Validated manifest. Starting with the job;jobId={};consumerTag={};jobType=video_video_transcoding_job",
           manifest.jobId(), consumerTag);
     } catch (InvalidManifestException e) {
       // no sense to retry if manifest is corrupted
       // TODO: Send it to another queue for logging and auditing and alerting.
       log.error(
-          "message=Rejected job because manifest is invalid;jobId={};consumerTag={}j;obType=transcoding_job",
+          "message=Rejected job because manifest is invalid;jobId={};consumerTag={}j;obType=video_transcoding_job",
           manifest.jobId(), consumerTag);
       getChannel().basicAck(envelope.getDeliveryTag(), false);
       throw e;
@@ -58,10 +63,11 @@ public class JobConsumer extends DefaultConsumer {
     // that is why the path is concatenated with /segments
     final Path segmentsPath = s3Store.downloadSamePrefixFiles(
         manifest.sourceBucket(), manifest.sourceKeyPrefix().concat("/segments"),
-        manifest.segmentFileNames(), manifest.jobId().toString()
+        manifest.jobId().toString(),
+        manifest.segmentFileNames()
     );
     log.debug(
-        "message=Downloaded segment files for the job. Number of segments {}. Downloaded to: {};jobId={};consumerTag={}j;obType=transcoding_job",
+        "message=Downloaded segment files for the job. Number of segments {}. Downloaded to: {};jobId={};consumerTag={}j;obType=video_transcoding_job",
         segmentNames.length, segmentsPath, manifest.jobId(), consumerTag);
 
     try {
@@ -70,7 +76,7 @@ public class JobConsumer extends DefaultConsumer {
         final var firstSegment = segmentsPath.resolve(segmentNames[0]);
         skipVideoFrames(firstSegment, manifest.skipFirstFrames());
         log.debug(
-            "message=Skipped {} frames from first segment {};jobId={};consumerTag={};jobType=transcoding_job",
+            "message=Skipped {} frames from first segment {};jobId={};consumerTag={};jobType=video_transcoding_job",
             manifest.skipFirstFrames(), segmentNames[0], manifest.jobId(), consumerTag);
       }
 
@@ -98,20 +104,20 @@ public class JobConsumer extends DefaultConsumer {
       transcoder.extractFirstSegment(joinedEncodedSegments, processedSegment,
           manifest.targetSegmentDurationSeconds());
       log.debug(
-          "message=Finished transcoding segment with index {} at {};jobId={};consumerTag={};jobType=transcoding_job",
+          "message=Finished transcoding segment with index {} at {};jobId={};consumerTag={};jobType=video_transcoding_job",
           manifest.segmentIndex(), processedSegment, manifest.jobId(), consumerTag);
 
       transcodeToDifferentBitRates(manifest, processedSegment, processedFilesPath);
 
       log.debug(
-          "message=Finished transcoding original segment with index {} to {} qualities;jobId={};consumerTag={};jobType=transcoding_job",
+          "message=Finished transcoding original segment with index {} to {} qualities;jobId={};consumerTag={};jobType=video_transcoding_job",
           manifest.segmentIndex(), manifest.outputQualities().length, manifest.jobId(),
           consumerTag);
 
       s3Store.uploadProcessedFiles(manifest.outputBucket(), manifest.outputKeyPrefix(),
           processedFilesPath);
       log.debug(
-          "message=Finished uploading segments to bucket;bucket={};key={};jobId={};consumerTag={};jobType=transcoding_job",
+          "message=Finished uploading segments to bucket;bucket={};key={};jobId={};consumerTag={};jobType=video_transcoding_job",
           manifest.outputBucket(), manifest.outputKeyPrefix(), manifest.jobId(), consumerTag);
 
       getChannel().basicAck(envelope.getDeliveryTag(), false);

@@ -1,4 +1,4 @@
-package io.github.akmal2409.job;
+package io.github.akmal2409.job.video;
 
 import io.github.akmal2409.utils.StringUtils;
 import java.util.regex.Pattern;

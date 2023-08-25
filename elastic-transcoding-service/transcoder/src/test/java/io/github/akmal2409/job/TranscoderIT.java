@@ -29,6 +29,10 @@ class TranscoderIT {
   final Path testVideoWithAudioPath = Path.of(
       this.getClass().getClassLoader().getResource("test-15s.mp4").toURI());
 
+  final Path testAudioPath = Path.of(
+      this.getClass().getClassLoader().getResource("audio.m4a").toURI()
+  );
+
   Transcoder transcoder = new Transcoder(executor);
 
   TranscoderIT() throws URISyntaxException, IOException {
@@ -104,6 +108,22 @@ class TranscoderIT {
   }
 
 
+  @Test
+  @DisplayName("Transcodes audio to different bitRate")
+  void transcodesToDifferentBitRateAudio() throws IOException {
+    final Path audio = testAudioPath;
+    final Path out = Files.createTempDirectory(null).resolve("audio.m4a");
+
+
+    final var expectedBitRate = 160_000;
+    transcoder.transcodeAudio(audio, out, "aac", expectedBitRate);
+
+    final var actualBitRate = (float) getBitRateInBits(out);
+
+    assertThat(actualBitRate).isEqualTo(expectedBitRate, Offset.offset(1000f));
+  }
+
+
   private int[] getResolution(Path video) {
     final var resolution = new int[2];
 
@@ -118,11 +138,15 @@ class TranscoderIT {
   }
 
   private float getBitRate(Path video) {
-    return ffprobe.setInput(video)
+    return getBitRateInBits(video)/1000f;
+  }
+
+  private int getBitRateInBits(Path src) {
+    return ffprobe.setInput(src)
                .setShowEntries("stream")
                .execute()
                .getStreams().get(0)
-               .getProbeData().getInteger("bit_rate")/1000f;
+               .getProbeData().getInteger("bit_rate");
   }
 
   private float getDuration(Path video) {

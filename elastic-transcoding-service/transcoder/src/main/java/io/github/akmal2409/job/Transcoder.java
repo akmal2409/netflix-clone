@@ -4,6 +4,7 @@ package io.github.akmal2409.job;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import io.github.akmal2409.utils.FileUtils;
+import io.github.akmal2409.utils.StringUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -189,6 +190,46 @@ public class Transcoder {
     } catch (IOException e) {
       throw new TranscodingException("Exception occurred when generating index file", e);
     }
+  }
+
+  /**
+   * Transcodes the source audio to target with the specified codec and bitRate.
+   *
+   * @param source audio file path
+   * @param out output audio file
+   * @param codec codec to use for encoding
+   * @param bitRate bit rate in bits
+   */
+  public void transcodeAudio(@NotNull Path source, @NotNull Path out, @NotNull String codec, int bitRate) {
+    if (bitRate < 1) {
+      throw new TranscodingException("bitRate cannot be smaller than 1");
+    }
+
+    if (StringUtils.isEmpty(codec)) {
+      throw new TranscodingException("Codec is required");
+    }
+
+    if (!Files.exists(source)) {
+      throw new TranscodingException("Source file is not present");
+    }
+
+    try {
+      Files.createDirectories(out.getParent());
+    } catch (IOException e) {
+      throw new TranscodingException("Could not create output directories", e);
+    }
+
+    final var jobBuilder = new FFmpegBuilder()
+                               .addInput(source.toString())
+                               .overrideOutputFiles(true)
+
+                               .addOutput(out.toString())
+                               .addExtraArgs("-vn", "-sn", "-dn")
+                               .setAudioCodec(codec)
+                               .setAudioBitRate(bitRate)
+                               .done();
+
+    ffmpegExecutor.createJob(jobBuilder).run();
   }
 
   /**

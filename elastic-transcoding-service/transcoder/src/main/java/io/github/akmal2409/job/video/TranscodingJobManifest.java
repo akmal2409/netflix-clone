@@ -1,4 +1,4 @@
-package io.github.akmal2409.job;
+package io.github.akmal2409.job.video;
 
 import java.util.Arrays;
 import java.util.Objects;
