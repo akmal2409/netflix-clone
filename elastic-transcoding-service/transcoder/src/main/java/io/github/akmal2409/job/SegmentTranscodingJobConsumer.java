@@ -94,7 +94,7 @@ public class JobConsumer extends DefaultConsumer {
       final Path processedSegment = originalQualitySegmentPath
                                         .resolve(SegmentConstants.segmentIndexToFileName(
                                             manifest.segmentIndex()));
-      
+
       transcoder.extractFirstSegment(joinedEncodedSegments, processedSegment,
           manifest.targetSegmentDurationSeconds());
       log.debug(
