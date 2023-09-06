@@ -17,7 +17,7 @@ import net.bramp.ffmpeg.FFprobe;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class FFmpegVideoSlicerIT {
+class FFmpegMediaExtractorIT {
   public static final String TEST_15S_MP4 = "test-15s.mp4";
 
   public static FFmpeg ffmpeg;
@@ -41,9 +41,9 @@ class FFmpegVideoSlicerIT {
     Path testVideoPath = Path.of(videoUrl.toURI());
     Pattern segmentRegex = Pattern.compile("test-\\d{3}.mp4");
 
-    VideoSlicer videoSlicer = FFmpegVideoSlicer.withExecutor(new FFmpegExecutor(ffmpeg, ffprobe));
+    MediaExtractor mediaExtractor = FFmpegMediaExtractor.withExecutor(new FFmpegExecutor(ffmpeg, ffprobe));
 
-    videoSlicer.slice(testVideoPath, tmpDir, Duration.ofSeconds(5), "test-%03d.mp4");
+    mediaExtractor.slice(testVideoPath, tmpDir, Duration.ofSeconds(5), "test-%03d.mp4");
 
 
     try (Stream<Path> fileStream = Files.list(tmpDir)) {
@@ -63,9 +63,9 @@ class FFmpegVideoSlicerIT {
     Path testVideoPath = Path.of(videoUrl.toURI());
     Path audioPath = Files.createTempDirectory(null).resolve("audio.m4a");
 
-    VideoSlicer videoSlicer = FFmpegVideoSlicer.withExecutor(new FFmpegExecutor(ffmpeg, ffprobe));
+    MediaExtractor mediaExtractor = FFmpegMediaExtractor.withExecutor(new FFmpegExecutor(ffmpeg, ffprobe));
 
-    videoSlicer.extractAudio(testVideoPath, audioPath);
+    mediaExtractor.extractAudio(testVideoPath, audioPath);
 
     assertThat(Files.exists(audioPath)).isTrue();
   }

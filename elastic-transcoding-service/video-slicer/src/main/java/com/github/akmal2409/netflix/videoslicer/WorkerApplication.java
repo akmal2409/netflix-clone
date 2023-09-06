@@ -8,7 +8,7 @@ import com.github.akmal2409.netflix.videoslicer.exception.AsyncMessagingPlatform
 import com.github.akmal2409.netflix.videoslicer.exception.DeadWorkerException;
 import com.github.akmal2409.netflix.videoslicer.job.JobConsumer;
 import com.github.akmal2409.netflix.videoslicer.job.S3Store;
-import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.MediaExtractor;
 import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoAnalyser;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -39,7 +39,7 @@ public class WorkerApplication {
 
   private DependencyFactory dependencyFactory;
 
-  private VideoSlicer videoSlicer;
+  private MediaExtractor mediaExtractor;
   private VideoAnalyser videoAnalyser;
   private S3Client s3Client;
   private S3TransferManager transferManager;
@@ -78,7 +78,7 @@ public class WorkerApplication {
       activeChannel.basicQos(configuration.getWorkerConcurrentJobs());
 
       activeChannel.basicConsume(configuration.getJobQueue(), new JobConsumer(
-          activeChannel, videoSlicer, mapper, s3VideoStore,
+          activeChannel, mediaExtractor, mapper, s3VideoStore,
           Executors.newFixedThreadPool(2), videoAnalyser));
 
     } catch (IOException | TimeoutException e) {
@@ -133,7 +133,7 @@ public class WorkerApplication {
       final var awsCredentialsProvider = dependencyFactory.newAwsCredentialsProvider();
       s3Client = dependencyFactory.newS3Client(awsCredentialsProvider);
 
-      videoSlicer = dependencyFactory.newVideoSlicer(dependencyFactory.ffmpegExecutor());
+      mediaExtractor = dependencyFactory.newVideoSlicer(dependencyFactory.ffmpegExecutor());
       videoAnalyser = dependencyFactory.newVideoAnalyser(dependencyFactory.newJaffreeFFprobe());
 
       transferManager = dependencyFactory.newS3TransferManager(

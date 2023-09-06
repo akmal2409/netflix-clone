@@ -2,9 +2,6 @@ package com.github.akmal2409.netflix.videoslicer.processing;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
-import com.github.akmal2409.netflix.videoslicer.processing.FileNotFoundException;
-import com.github.akmal2409.netflix.videoslicer.processing.SegmentationNotPossibleException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,13 +17,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @ExtendWith(MockitoExtension.class)
-class FFmpegVideoSlicerTest {
+class FFmpegMediaExtractorTest {
 
   @Mock
   FFmpegExecutor executor;
 
   @InjectMocks
-  FFmpegVideoSlicer slicer;
+  FFmpegMediaExtractor slicer;
 
   @Test
   @DisplayName("Will throw File not found exception if nonexistent file requested")

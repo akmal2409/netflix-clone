@@ -10,19 +10,19 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FFmpegVideoSlicer implements VideoSlicer {
+public class FFmpegMediaExtractor implements MediaExtractor {
 
 
-  private static final Logger log = LoggerFactory.getLogger(FFmpegVideoSlicer.class);
+  private static final Logger log = LoggerFactory.getLogger(FFmpegMediaExtractor.class);
 
   private final FFmpegExecutor ffmpegExecutor;
 
-  private FFmpegVideoSlicer(FFmpegExecutor ffmpegExecutor) {
+  private FFmpegMediaExtractor(FFmpegExecutor ffmpegExecutor) {
     this.ffmpegExecutor = ffmpegExecutor;
   }
 
-  public static FFmpegVideoSlicer withExecutor(FFmpegExecutor ffmpegExecutor) {
-    return new FFmpegVideoSlicer(ffmpegExecutor);
+  public static FFmpegMediaExtractor withExecutor(FFmpegExecutor ffmpegExecutor) {
+    return new FFmpegMediaExtractor(ffmpegExecutor);
   }
 
   @Override

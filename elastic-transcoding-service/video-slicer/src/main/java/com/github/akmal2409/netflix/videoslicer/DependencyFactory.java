@@ -3,8 +3,8 @@ package com.github.akmal2409.netflix.videoslicer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.akmal2409.netflix.videoslicer.config.WorkerConfiguration;
 import com.github.akmal2409.netflix.videoslicer.job.S3Store;
-import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
-import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.FFmpegMediaExtractor;
+import com.github.akmal2409.netflix.videoslicer.processing.MediaExtractor;
 import com.github.akmal2409.netflix.videoslicer.processing.analyser.FFprobeVideoAnalyser;
 import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoAnalyser;
 import com.rabbitmq.client.ConnectionFactory;
@@ -87,8 +87,8 @@ public class DependencyFactory {
                .findAndRegisterModules();
   }
 
-  public VideoSlicer newVideoSlicer(FFmpegExecutor executor) {
-    return FFmpegVideoSlicer.withExecutor(executor);
+  public MediaExtractor newVideoSlicer(FFmpegExecutor executor) {
+    return FFmpegMediaExtractor.withExecutor(executor);
   }
 
   public S3Store videoStore(S3TransferManager transferManager) {

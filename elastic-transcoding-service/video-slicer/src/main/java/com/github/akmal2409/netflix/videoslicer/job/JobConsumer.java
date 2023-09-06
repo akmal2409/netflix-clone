@@ -5,7 +5,7 @@ import com.github.akmal2409.netflix.videoslicer.config.SegmentConstants;
 import com.github.akmal2409.netflix.videoslicer.coordinator.frame.Segment;
 import com.github.akmal2409.netflix.videoslicer.job.ProcessedIndex.ProcessedSegment;
 import com.github.akmal2409.netflix.videoslicer.job.exception.JobExecutionFailureException;
-import com.github.akmal2409.netflix.videoslicer.processing.VideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.MediaExtractor;
 import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoAnalyser;
 import com.github.akmal2409.netflix.videoslicer.processing.analyser.VideoIndex;
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -32,16 +32,16 @@ public class JobConsumer extends DefaultConsumer {
 
   private static final Logger log = LoggerFactory.getLogger(JobConsumer.class);
 
-  private final VideoSlicer videoSlicer;
+  private final MediaExtractor mediaExtractor;
   private final ObjectMapper objectMapper;
   private final S3Store s3Store;
   private final Executor executor;
   private final VideoAnalyser videoAnalyser;
 
-  public JobConsumer(Channel channel, VideoSlicer videoSlicer, ObjectMapper objectMapper,
+  public JobConsumer(Channel channel, MediaExtractor mediaExtractor, ObjectMapper objectMapper,
       S3Store videoStore, Executor executor, VideoAnalyser videoAnalyser) {
     super(channel);
-    this.videoSlicer = videoSlicer;
+    this.mediaExtractor = mediaExtractor;
     this.objectMapper = objectMapper;
     this.s3Store = videoStore;
     this.executor = executor;
@@ -89,14 +89,14 @@ public class JobConsumer extends DefaultConsumer {
 
       try {
         final var audioExtractionFuture = CompletableFuture.runAsync(() ->
-                                                                         videoSlicer.extractAudio(
+                                                                         mediaExtractor.extractAudio(
                                                                              videoSource.filePath(),
                                                                              audioFilePath),
             executor);
 
         // while the audio task is running async, we can wait for segmentation to finish and then index all files
         final var segmentsPath = outputFileDirectory.resolve("segments");
-        videoSlicer.slice(
+        mediaExtractor.slice(
             videoSource.filePath(),
             segmentsPath,
             Duration.ofSeconds(manifest.segmentDurationSeconds()),

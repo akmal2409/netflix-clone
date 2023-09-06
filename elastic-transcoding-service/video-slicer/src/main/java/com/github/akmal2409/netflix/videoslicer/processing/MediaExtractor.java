@@ -3,7 +3,7 @@ package com.github.akmal2409.netflix.videoslicer.processing;
 import java.nio.file.Path;
 import java.time.Duration;
 
-public interface VideoSlicer {
+public interface MediaExtractor {
 
   /**
    * Slices given video {@code source} file into segments with duration

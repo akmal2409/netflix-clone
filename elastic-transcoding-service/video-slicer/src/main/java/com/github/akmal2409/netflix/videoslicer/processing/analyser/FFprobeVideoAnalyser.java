@@ -5,7 +5,7 @@ import com.github.akmal2409.netflix.videoslicer.coordinator.frame.OverlappingSeg
 import com.github.akmal2409.netflix.videoslicer.coordinator.frame.Segment;
 import com.github.akmal2409.netflix.videoslicer.coordinator.frame.TranscodingConfiguration;
 import com.github.akmal2409.netflix.videoslicer.coordinator.frame.TranscodingJobCoordinator;
-import com.github.akmal2409.netflix.videoslicer.processing.FFmpegVideoSlicer;
+import com.github.akmal2409.netflix.videoslicer.processing.FFmpegMediaExtractor;
 import com.github.akmal2409.netflix.videoslicer.processing.FileNotFoundException;
 import com.github.kokorin.jaffree.ffprobe.FFprobe;
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
@@ -164,7 +164,7 @@ public class FFprobeVideoAnalyser implements VideoAnalyser {
 
     final VideoIndex index = analyser.analyse(sourceVideo);
 
-    final var slicer = FFmpegVideoSlicer.withExecutor(new FFmpegExecutor(
+    final var slicer = FFmpegMediaExtractor.withExecutor(new FFmpegExecutor(
         new FFmpeg(),
         new net.bramp.ffmpeg.FFprobe()
     ));
