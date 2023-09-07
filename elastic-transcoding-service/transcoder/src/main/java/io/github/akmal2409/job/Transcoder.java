@@ -16,6 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The encoded segments are always encoded with h264, High profile and 4.0 level
+ */
 public class Transcoder {
 
   private static final Logger log = LoggerFactory.getLogger(Transcoder.class);
@@ -142,6 +145,7 @@ public class Transcoder {
 
       jobBuilder.addOutput(task.out().toString())
           .setVideoCodec("libx264")
+          .addExtraArgs("-profile:v", "high", "-level:v", "4.0")
           .addExtraArgs("-tune", "film")
           .setVideoBitRate(task.bitRate())
           .addExtraArgs("-b:v", task.bitRate() + "k")
@@ -181,6 +185,7 @@ public class Transcoder {
                                  .addExtraArgs("-x264opts",
                                      String.format("keyint=%d:min-keyint=%d:no-scenecut",
                                          gopSize, gopSize))
+                                 .addExtraArgs("-profile:v", "high", "-level:v", "4.0")
                                  .setConstantRateFactor(0)
                                  .done();
 
