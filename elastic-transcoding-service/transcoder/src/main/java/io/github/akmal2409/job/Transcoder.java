@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The encoded segments are always encoded with h264, High profile and 4.0 level
+ * The encoded segments are always encoded with h264, High profile and 4.0 level.
+ * Original segment will always have h264, High 4:4:4 and 4.0 level
  */
 public class Transcoder {
 
@@ -145,10 +146,10 @@ public class Transcoder {
 
       jobBuilder.addOutput(task.out().toString())
           .setVideoCodec("libx264")
-          .addExtraArgs("-profile:v", "high", "-level:v", "4.0")
+          .addExtraArgs("-profile:v", "high", "-level:v", "4")
           .addExtraArgs("-tune", "film")
           .setVideoBitRate(task.bitRate())
-          .addExtraArgs("-b:v", task.bitRate() + "k")
+          .addExtraArgs("-b:v", String.valueOf(task.bitRate()))
           .setVideoFilter(String.format("scale=%d:%d", task.width(), task.height()))
           .addExtraArgs("-preset", "slow")
 
@@ -185,7 +186,7 @@ public class Transcoder {
                                  .addExtraArgs("-x264opts",
                                      String.format("keyint=%d:min-keyint=%d:no-scenecut",
                                          gopSize, gopSize))
-                                 .addExtraArgs("-profile:v", "high", "-level:v", "4.0")
+                                 .addExtraArgs("-profile:v", "high444", "-level:v", "4")
                                  .setConstantRateFactor(0)
                                  .done();
 
